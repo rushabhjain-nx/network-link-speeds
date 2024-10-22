@@ -1,0 +1,9 @@
+Date Time,Cluster,Host Name,Interface Name,Virtual Switch,Link Status,Network Received Speed (Rx)(kBps),Network Transmitted Speed (Tx)(kBps)
+2024-07-31 02:31:41 PM,10.38.86.37,PHX-POC314-1,eth2,vs0,Connected,6832,5317
+2024-07-31 02:31:42 PM,10.38.86.37,PHX-POC314-1,eth3,vs1,Connected,0,0
+2024-07-31 02:31:43 PM,10.38.86.37,PHX-POC314-2,eth3,vs1,Connected,0,0
+2024-07-31 02:31:45 PM,10.38.86.37,PHX-POC314-2,eth2,vs0,Connected,6813,8218
+2024-07-31 02:31:46 PM,10.38.86.37,PHX-POC314-3,eth3,vs1,Connected,0,0
+2024-07-31 02:31:48 PM,10.38.86.37,PHX-POC314-3,eth2,vs0,Connected,1404,1665
+2024-07-31 02:31:49 PM,10.38.86.37,PHX-POC314-4,eth3,vs1,Connected,0,0
+2024-07-31 02:31:51 PM,10.38.86.37,PHX-POC314-4,eth2,vs0,Connected,1449,1644

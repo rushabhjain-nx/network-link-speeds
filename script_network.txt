@@ -1,0 +1,186 @@
+import urllib3
+import json
+import requests
+import csv
+from datetime import datetime
+
+
+now = datetime.now()
+
+
+date_time_str = now.strftime("%Y-%m-%d %I:%M:%S %p")
+
+
+urllib3.disable_warnings()
+
+def get_port_name(pe_ip, username, password,host_uuid,nic_uuid):
+    url = f"https://{pe_ip}:9440/PrismGateway/services/rest/v1/groups"
+    body = {
+        "entity_type":"host_nic","entity_ids":[nic_uuid],
+        "group_member_attributes":[{"attribute":"link_capacity"},
+        {"attribute":"mac_address"},{"attribute":"port_name"},
+        {"attribute":"switch_name"},{"attribute":"switch_port_name"},
+        {"attribute":"switch_port_native_vlan"},{"attribute":"link_detected"}],
+        "query_name":"prism:EBQueryModel","filter_criteria":f"node=={host_uuid}"
+    }
+
+    headers = {"Content-Type": "application/json", "charset": "utf-8"}
+    try:
+        response = requests.post(url, auth=(username, password), headers=headers, verify=False, json=body)
+        if response.status_code != 200:
+            #print("Error in getting VMs for PE:", Pe_IP)
+            return None
+    except Exception:
+        return None
+    
+    port_name = response.json()["group_results"][0]["entity_results"][0]["data"][2]["values"][0]["values"][0]
+
+    return port_name
+
+
+
+
+def get_speed(pe_ip, username, password,host_uuid,nic_uuid):
+
+    url = f"https://{pe_ip}:9440/PrismGateway/services/rest/v1/hosts/{host_uuid}/host_nics/{nic_uuid}/stats?metrics=network.received_rate_kBps%2Cnetwork.transmitted_rate_kBps%2Cnetwork.dropped_received_pkts%2Cnetwork.dropped_transmitted_pkts%2Cnetwork.error_received_pkts"
+    headers = {"Content-Type": "application/json", "charset": "utf-8"}
+    try:
+        response = requests.get(url, auth=(username, password), headers=headers, verify=False)
+        if response.status_code != 200:
+        #print("Error in getting VMs for PE:", Pe_IP)
+            return None,None
+    except Exception:
+        return None,None
+    
+    rx = response.json()["statsSpecificResponses"][0]["values"][0]
+    tx = response.json()["statsSpecificResponses"][1]["values"][0]
+
+
+    return rx,tx
+
+
+def get_network_speed_details(pe_ip, username, password,data):
+        url = f"https://{pe_ip}:9440/PrismGateway/services/rest/v1/groups"
+        headers = {"Content-Type": "application/json", "charset": "utf-8"}
+
+
+        body={"entity_type":"nic_team","group_member_sort_attribute":"name",
+          "group_member_attributes":[{"attribute":"name"},{"attribute":"node"},
+        {"attribute":"host_nic"},{"attribute":"active_host_nic"}]}
+     
+        try:
+            response = requests.post(url, auth=(username, password), headers=headers, verify=False, json=body)
+            if response.status_code != 200:
+        #print("Error in getting VMs for PE:", Pe_IP)
+                return None
+        except Exception:
+            return None
+        
+        active_links = []
+        for o in response.json()["group_results"][0]["entity_results"]:
+            host_uuid = o["data"][1]["values"][0]["values"][0]
+            active_links = o["data"][3]["values"][0]["values"]
+            flag=0
+            for obj in data:
+                if obj["uuid"] == host_uuid:
+
+                    obj["active_links"] = active_links
+                    flag+=1
+                    break
+            # print("Host UUID:",host_uuid)
+            # print(active_links)
+            # print()
+        return data
+
+
+def get_hosts(pe_ip, username, password):
+
+    
+    headers = {"Content-Type": "application/json", "charset": "utf-8"}
+
+    url = f"https://{pe_ip}:9440/PrismGateway/services/rest/v1/hosts"
+
+    try:
+        response = requests.get(url, auth=(username, password), headers=headers, verify=False)
+    #print(response.status_code)
+        if response.status_code != 200:
+        #print("Error in getting VMs for PE:", Pe_IP)
+            return None
+    except Exception:
+        return None
+    #print(response.json()["entities"])
+    hosts_data=[]
+    for host in response.json()["entities"]:
+        
+        hosts_data.append({"uuid": host["uuid"], "name": host["name"],"cluster":pe_ip})
+       # data.append({"uuid": host["uuid"], "name": host["name"],"cluster":pe_ip})
+
+    # with open("hosts.json", "w") as f:
+    #     json.dump(data, f, indent=4)
+    print("\t Getting Active Network Links from PE:", pe_ip)
+    hosts_data = get_network_speed_details(pe_ip, username, password,hosts_data)
+
+    return hosts_data
+
+
+
+
+def main():
+
+    data = []
+    with open("hosts.json","w") as f:
+        json.dump(data, f)
+
+    with open("creds.csv","r") as f:
+        reader = csv.reader(f)
+        for row in reader:
+            username = row[0]
+            password = row[1]
+
+    ouptut_json = []
+    with open("result.csv","w") as f:
+        writer = csv.writer(f)
+        writer.writerow(["Date Time","Cluster", "Host Name","Interface Name","Network Received Speed (Rx)(kBps)","Network Transmitted Speed (Tx)(kBps)"])
+
+        with open("pe.csv") as pe_csv:
+            reader = csv.reader(pe_csv)
+            for row in reader:
+                try:
+                    print("\t Getting hosts from PE:", row[0])
+                    res = get_hosts(row[0], username, password)
+                    
+                #print(res)
+                    if not res:
+                        raise Exception
+                    #print(res)
+                    ouptut_json+=res
+                    print("\t Getting Network Speeds for Active Links from PE:", row[0])
+                    for h in res:
+                        host_uuid = h["uuid"]
+                        for active_link in h["active_links"]:
+                            nic_uuid = active_link
+                            rx,tx = get_speed(row[0], username, password,host_uuid,nic_uuid)
+                            pn = get_port_name(row[0], username, password,host_uuid,nic_uuid)
+                            if not pn:
+                                pn = "NA"
+                            if not rx and not tx:
+                                pass
+                                #writer.writerow([date_time_str,row[0], h["name"],0,0])
+                            else:
+
+                                writer.writerow([date_time_str,row[0], h["name"],pn,rx,tx])
+                            
+
+
+
+
+                except Exception:
+                    print("\t Error in getting Hosts from PE", row[0])
+                print()
+    
+    with open("hosts.json","w") as f:
+        json.dump(ouptut_json, f, indent=4)
+
+if __name__ == '__main__':
+    print()
+    main()

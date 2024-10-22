@@ -1,0 +1,70 @@
+[
+    {
+        "uuid": "bbc6a6d1-19a1-421c-9674-4b57539019ee",
+        "name": "PHX-POC314-1",
+        "cluster": "10.38.86.37",
+        "nics": [
+            {
+                "port_name": "eth2",
+                "uuid": "47bc1770-9364-4f2c-9ed0-d578e79a30c0",
+                "vs": "vs0"
+            },
+            {
+                "port_name": "eth3",
+                "uuid": "8f2676a1-c98d-4cc8-8f52-33c9a151c7c3",
+                "vs": "vs1"
+            }
+        ]
+    },
+    {
+        "uuid": "3015f770-783e-48e6-848a-2d47f24cae93",
+        "name": "PHX-POC314-2",
+        "cluster": "10.38.86.37",
+        "nics": [
+            {
+                "port_name": "eth3",
+                "uuid": "e74504f9-fb06-4dd7-8c88-8ff24b8829d8",
+                "vs": "vs1"
+            },
+            {
+                "port_name": "eth2",
+                "uuid": "306c0b1b-ff66-4aaf-ae2d-e62260cbf306",
+                "vs": "vs0"
+            }
+        ]
+    },
+    {
+        "uuid": "549238b0-d536-4838-98cf-71d251e9f46f",
+        "name": "PHX-POC314-3",
+        "cluster": "10.38.86.37",
+        "nics": [
+            {
+                "port_name": "eth3",
+                "uuid": "406eb672-32ea-4e71-9f3f-37a53c2722a4",
+                "vs": "vs1"
+            },
+            {
+                "port_name": "eth2",
+                "uuid": "462b0e04-f60e-4f3d-9c11-e8ff044e770c",
+                "vs": "vs0"
+            }
+        ]
+    },
+    {
+        "uuid": "7ed7472f-8d45-4770-9768-e600d8f7766f",
+        "name": "PHX-POC314-4",
+        "cluster": "10.38.86.37",
+        "nics": [
+            {
+                "port_name": "eth3",
+                "uuid": "37b68949-2f21-4c4c-a177-993c8ec7cab9",
+                "vs": "vs1"
+            },
+            {
+                "port_name": "eth2",
+                "uuid": "eedcb91b-ac4f-4754-a3f8-0cbf08ed44e3",
+                "vs": "vs0"
+            }
+        ]
+    }
+]
